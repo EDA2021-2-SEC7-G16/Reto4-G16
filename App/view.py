@@ -34,24 +34,39 @@ se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
 
+airportsFile = "airports_full.csv"
+routesFile = "routes_full.csv"
+citiesFile = "worldcities.csv"
+
 def printMenu():
     print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- ")
+    print("1- Inicializar analizador")
+    print("2- Cargar datos al analizador")
 
-catalog = None
+def optionTwo(cont):
+    # controller.loadAirports(cont, airportsFile)
+    controller.loadRoutes(cont, routesFile)
+    numedges = controller.totalConnections(cont)
+    numvertex = controller.totalStops(cont)
+    print('Numero de vértices: ' + str(numvertex))
+    print('Numero de arcos: ' + str(numedges))
+    print('El límite de recursión actual es de ' + str(sys.getrecursionlimit()))
+
+cont = None
 
 """
 Menu principal
 """
 while True:
     printMenu()
-    inputs = input('Seleccione una opción para continuar\n')
+    inputs = input('Seleccione una opción para continuar\n>')
     if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
+        print("Inicializando...")
+        cont = controller.init()
 
     elif int(inputs[0]) == 2:
-        pass
+        print("Cargando información de los archivos al analizador...")
+        optionTwo(cont)
 
     else:
         sys.exit(0)
