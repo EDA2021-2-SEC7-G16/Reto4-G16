@@ -41,29 +41,37 @@ def init():
 
 # Funciones para la carga de datos
 
-def loadRoutes(analyzer, routesFile):
+def loadFiles(analyzer, airportsFile, routesFile, citiesFile):
     """
     Carga los datos de los archivos CSV en el modelo.
-    Crea un vértice por cada aeropuerto dentro del archivo.
-
-    addRouteConnection crea conexiones entre diferentes rutas
-    servidas en una misma estación.
     """
+    airportsFile = cf.data_dir + airportsFile
     routesFile = cf.data_dir + routesFile
-    inputFile = csv.DictReader(open(routesFile, encoding="utf-8"),
-                                delimiter=",")
-    lastFlight = None
+    citiesFile = cf.data_dir + citiesFile
+    cityCount = 0
 
-    for route in inputFile:
-        if lastFlight is not None:
-            sameDeparture = lastFlight['Departure'] == route['Departure']
-            sameDestination = lastFlight['Destination'] == route['Destination']
-            if sameDeparture and not sameDestination:
-                model.addStopConnection(analyzer, lastFlight, route)
-        lastFlight = route
-    model.addRouteConnections(analyzer)
+    airportsInputFile = csv.DictReader(open(airportsFile, encoding="utf-8"),
+                                delimiter=",")
+    routesInputFile = csv.DictReader(open(routesFile, encoding="utf-8"),
+                                delimiter=",")
+    citiesInputFile = csv.DictReader(open(citiesFile, encoding="utf-8"),
+                                delimiter=",")
+
+    for airport in airportsInputFile:
+        model.addAirport(analyzer, airport)
+    for route in routesInputFile:
+        model.addRoute(analyzer, route)
+    for city in citiesInputFile:
+        cityCount += 1
+        model.addCity(analyzer, city, cityCount)
+
     return analyzer
 
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+def vertexAmmount(graph):
+    return model.vertexAmmount(graph)
+
+def edgesAmmount(graph):
+    return model.edgesAmmount(graph)

@@ -31,6 +31,7 @@ from DISClib.ADT import map as mp
 from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
+from DISClib.DataStructures import mapentry as me
 assert cf
 
 """
@@ -50,7 +51,9 @@ def newAnalyzer():
            vertice determinado a todos los otros vértices del grafo
     """
     analyzer = {'airports': None,
-                'digraphConnections': None}
+                'digraphConnections': None,
+                'graphConnections': None, 
+                'cities': None}
 
     analyzer['airports'] = mp.newMap(numelements=15000,
                                      maptype='PROBING',
@@ -60,82 +63,60 @@ def newAnalyzer():
                                               directed=True,
                                               size=100000,
                                               comparefunction=compareIATACode)
+
+    analyzer['graphConnections'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=False,
+                                              size=100000,
+                                              comparefunction=compareIATACode)
+
+    analyzer['cities'] = mp.newMap(maptype='CHAINING',
+                                   loadfactor=4)
+
     return analyzer
 
 
 # Funciones para agregar informacion al catalogo
 
-def addStopConnection(analyzer, lastFlight, route):
-    """
-    Adiciona los aeropuertos al grafo como vértices y arcos entre las
-    estaciones adyacentes.
-    """
-    
-    origin = formatVertex(lastFlight)
-    destination = formatVertex(route)
-    cleanServiceDistance(lastFlight, route)
-    distance = float(route['distance_km']) - float(lastFlight['distance_km'])
+def addRoute(analyzer, route):
+    origin = route['Departure']
+    destination = route['Destination']
+    distance = float(route['distance_km'])
     distance = abs(distance)
-    addStop(analyzer, origin)
-    addStop(analyzer, destination)
-    addConnection(analyzer, origin, destination, distance)
-    addRouteStop(analyzer, route)
-    addRouteStop(analyzer, lastFlight)
-    return analyzer
-    
-
-def addStop(analyzer, airportID):
-    """
-    Adiciona un aeropuerto como un vértice del grafo.
-    """
-    if not gr.containsVertex(analyzer['airports'], airportID):
-        gr.insertVertex(analyzer['airports'], airportID)
+    addStop(analyzer['digraphConnections'], origin)
+    addStop(analyzer['digraphConnections'], destination)
+    addConnection(analyzer['digraphConnections'], origin, destination, distance)
+    if gr.getEdge(analyzer['digraphConnections'], destination, origin) != None:
+        addStop(analyzer['graphConnections'], origin)
+        addStop(analyzer['graphConnections'], destination)
+        addConnection(analyzer['graphConnections'], origin, destination, distance)
     return analyzer
 
+def addAirport(analyzer, airport):
+    if not mp.contains(analyzer['airports'], airport['IATA']):
+        mp.put(analyzer['airports'], airport['IATA'], airport)
+        addStop(analyzer['digraphConnections'], airport['IATA'])
 
-def addConnection(analyzer, origin, destination, distance):
-    """
-    Adiciona un arco entre dos aeropuertos.
-    """
-    edge = gr.getEdge(analyzer['airports'], origin, destination)
-    if edge is None:
-        gr.addEdge(analyzer['airports'], origin, destination, distance)
-    return analyzer
+def addStop(graph, airportID):
+    if not gr.containsVertex(graph, airportID):
+        gr.insertVertex(graph, airportID)
 
-def addRouteStop(analyzer, route):
-    """
-    Agrega a un aeropuerto una ruta que 
-    es servida en esa estación.
-    """
-    entry = mp.get(analyzer['digraphConnections'], route['Destination'])
-    if entry is None:
-        routesList = lt.newList(cmpfunction=compareRoutes)
-        lt.addLast(routesList, route['Airline'])
-        mp.put(analyzer['digraphConnections'], route['Destination'], routesList)
+def addCity(analyzer, city, counter):
+    mp.put(analyzer['cities'], "Counter", counter)
+    if not mp.contains(analyzer['cities'], city['city']):
+        cityList = lt.newList('ARRAY_LIST')
+        lt.addLast(cityList, city)
+        mp.put(analyzer['cities'], city['city'], cityList)
     else:
-        routesList = entry['value']
-        info = route['Airline']
-        if not lt.isPresent(routesList, info):
-            lt.addLast(routesList, info)
+        couple = mp.get(analyzer['cities'], city['city'])
+        existingList = me.getValue(couple)
+        lt.addLast(existingList, city)
+        mp.put(analyzer['cities'], city['city'], existingList)
     return analyzer
 
-def addRouteConnections(analyzer):
-    """
-    Por cada vértice (cada estacion) se recorre la lista
-    de rutas servidas en dicho aeropuerto y se crean
-    arcos entre ellos para representar el cambio de ruta
-    que se puede realizar en una estación.
-    """
-    stopsList = mp.keySet(analyzer['airports'])
-    for key in lt.iterator(stopsList):
-        routesList = mp.get(analyzer['airports'], key)['value']
-        prevRoute = None
-        for route in lt.iterator(routesList):
-            route = key + '-' + route
-            if prevRoute is not None:
-                addConnection(analyzer, prevRoute, route, 0)
-                addConnection(analyzer, route, prevRoute, 0)
-            prevRoute = route
+def addConnection(graph, origin, destination, distance):
+    edge = gr.getEdge(graph, origin, destination)
+    if edge is None:
+        gr.addEdge(graph, origin, destination, distance)
 
 # Funciones ayuda para carga de datos
 
@@ -161,6 +142,12 @@ def cleanServiceDistance(lastFlight, route):
 # Funciones para creacion de datos
 
 # Funciones de consulta
+
+def vertexAmmount(graph):
+    return gr.numVertices(graph)
+
+def edgesAmmount(graph):
+    return gr.numEdges(graph)
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
