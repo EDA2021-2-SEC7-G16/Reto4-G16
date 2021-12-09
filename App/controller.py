@@ -75,3 +75,12 @@ def vertexAmmount(graph):
 
 def edgesAmmount(graph):
     return model.edgesAmmount(graph)
+
+def aerialInterconnection(cont):
+    return model.aerialInterconnection(cont)
+
+def homonymCities(cont, city):
+    return model.homonymCities(cont, city)
+
+def shortestRoute(cont, originCityInfo, destinationCityInfo):
+    return model.shortestRoute(cont, originCityInfo, destinationCityInfo)
