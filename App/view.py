@@ -28,6 +28,7 @@ from DISClib.ADT import map as mp
 from DISClib.ADT.graph import gr
 from DISClib.DataStructures import mapentry as me
 from prettytable import PrettyTable
+from DISClib.ADT import stack as stk
 assert cf
 
 
@@ -40,14 +41,16 @@ operación solicitada
 
 cont = None
 
-airportsFile = "airports_full.csv"
-routesFile = "routes_full.csv"
+airportsFile = "airports-utf8-small.csv"
+routesFile = "routes-utf8-small.csv"
 citiesFile = "worldcities.csv"
 
 def printMenu():
     print("Bienvenido")
     print("1- Inicializar analizador")
     print("2- Cargar datos al analizador")
+    print("4- Encontrar clústeres de tráfico aéreo")
+    print("6- Utilizar las millas de viajero")
 
 def optionTwo(cont):
     # controller.loadAirports(cont, airportsFile)
@@ -91,6 +94,51 @@ def optionTwo(cont):
     print("Última ciudad cargada")
     print(city)
 
+def optionFour(cont,airport_1,airport_2):
+
+
+    total_clusters, Same_cluster = controller.total_clusters(cont,airport_1,airport_2)
+
+    print('En total hay ', total_clusters, 'clusters')
+    if Same_cluster:
+        print('Ambos aeropuertos estan en el mismo cluster')
+    else:
+        print('Los aeropuertos no estan en el mismo cluster')    
+
+    
+def optionsix(cont,origen,millas):
+
+
+    peso,size_lista, caminos, longest_root_size, longest_root = controller.min_tree(cont,origen,millas)
+
+    print('tipo: ', str(type(longest_root)))
+
+    print('El peso total para el aarbol de expansion minima es de :', peso)
+
+    print('Hay ',size_lista,' aeropuertos posibles')
+
+
+    print('La rama mas larga es de tamaño ', longest_root_size, 'y se compone de:')
+    n = 1
+
+    z = 0
+
+    lista = lt.newList()
+
+    while z < longest_root_size:
+        uwu= (stk.pop(longest_root))
+        print(uwu)
+        lt.addLast(lista,str(uwu))
+        z += 1
+    
+    distancia = controller.diferenciakm(cont,lista)
+
+    print('la diferencia entre las millas del usuario y la distancia que recorre la rama es de :', str((millas*1.6) -distancia))
+
+
+    
+
+    
 """
 Menu principal
 """
@@ -104,6 +152,17 @@ while True:
     elif int(inputs[0]) == 2:
         print("Cargando información de los archivos al analizador...")
         optionTwo(cont)
+
+    elif int(inputs[0]) == 4:
+        print("Cargando información de los archivos al analizador...")
+        airport_1 = input('Ingrese el codigo IATA del primer aeropuerto')
+        airport_2 = input('Ingrese el codigo IATA del segundo aeropuerto')
+        optionFour(cont,airport_1,airport_2) 
+
+    elif int(inputs[0]) == 6:
+        origen = input('Ingrese el codigo IATA de su ciudad de origen')
+        millas =int(input('Ingrese su numero de millas'))    
+        optionsix(cont,origen,millas)
 
     else:
         sys.exit(0)

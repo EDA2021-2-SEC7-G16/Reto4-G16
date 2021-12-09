@@ -25,6 +25,8 @@
  """
 
 
+from DISClib.Algorithms.Graphs.dfs import DepthFirstSearch, pathTo
+from DISClib.Algorithms.Graphs.prim import PrimMST, weightMST
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
@@ -33,7 +35,7 @@ from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.DataStructures import mapentry as me
 assert cf
-
+from DISClib.ADT import stack as stk
 """
 Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
 los mismos.
@@ -149,11 +151,60 @@ def vertexAmmount(graph):
 def edgesAmmount(graph):
     return gr.numEdges(graph)
 
-# Funciones utilizadas para comparar elementos dentro de una lista
+def total_clusters(cont,air_1,air_2):
 
-# Funciones de ordenamiento
+    all_scc = scc.KosarajuSCC(cont['digraphConnections'])
+    Conectados = scc.stronglyConnected(all_scc,air_1,air_2)
+    
+    return scc.connectedComponents(all_scc), Conectados
 
-# Funciones de comparación
+def min_tree(cont,origen,millas):
+
+
+    structure =  PrimMST(cont['graphConnections'])
+
+    peso, lista = weightMST(cont['graphConnections'],structure)
+
+    size_lista = lt.size(lista)
+
+    dfs = DepthFirstSearch(cont['graphConnections'],origen)
+
+    caminos = lt.newList()
+
+    longest_root = ''
+    longest_root_size = 0
+
+    for x in lt.iterator(lista):
+        if x != origen:
+            path = pathTo(dfs,x)
+
+            if path != None:
+                lt.addLast(caminos,path)
+                if stk.size(path) > longest_root_size:
+                    longest_root = path
+                    longest_root_size = stk.size(path)
+
+                
+            
+
+
+    return peso,size_lista, caminos, longest_root_size, longest_root
+
+def diferenciakm(cont,lista):
+
+    grafo = cont['graphConnections']    
+
+    tamano = lt.size(lista)
+    final = 0
+
+    x = 0
+    while x < tamano:
+        
+        final = final + gr.getEdge(grafo,lt.getElement(lista,x),lt.getElement(lista,x+1))['weight']
+        x += 1
+         
+    return final
+
 
 def compareStopIds(stop, keyvaluestop):
     """
