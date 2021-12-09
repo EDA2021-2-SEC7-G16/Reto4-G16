@@ -132,13 +132,20 @@ def edgesMST(graph, search):
         error.reraise(exp, 'bellman:pathto')
 
 
+
 def weightMST(graph, search):
     weight = 0.0
     edgesMST(graph, search)
     edges = search['mst']
+    lista = lt.newList()
     for edge in lt.iterator(edges):
+        
         weight = weight + e.weight(edge)
-    return weight
+        if lt.isPresent(lista,e.either(edge)) == 0:
+            lt.addLast(lista,e.either(edge))
+        if lt.isPresent(lista,e.other(edge,e.either(edge))) == 0:    
+            lt.addLast(lista,e.other(edge,e.either(edge)))
+    return weight,lista
 
 
 def initSearch(graph):

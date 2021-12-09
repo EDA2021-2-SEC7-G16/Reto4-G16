@@ -69,6 +69,8 @@ def loadFiles(analyzer, airportsFile, routesFile, citiesFile):
 
 # Funciones de ordenamiento
 
+
+
 # Funciones de consulta sobre el catálogo
 def vertexAmmount(graph):
     return model.vertexAmmount(graph)
@@ -84,3 +86,12 @@ def homonymCities(cont, city):
 
 def shortestRoute(cont, originCityInfo, destinationCityInfo):
     return model.shortestRoute(cont, originCityInfo, destinationCityInfo)
+
+def total_clusters(cont, air_1, air_2):
+    return model.total_clusters(cont,air_1,air_2)
+
+def min_tree(cont,origen,millas):
+    return model.min_tree(cont,origen,millas)
+
+def diferenciakm(cont,lista):
+    return model.diferenciakm(cont,lista)    
