@@ -91,3 +91,7 @@ def min_tree(cont,origen,millas):
 def diferenciakm(cont,lista):
 
     return model.diferenciakm(cont,lista)    
+
+def affectedairports(cont,airport):
+
+    return model.affectedairports(cont,airport)    

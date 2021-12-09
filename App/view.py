@@ -51,6 +51,7 @@ def printMenu():
     print("2- Cargar datos al analizador")
     print("4- Encontrar clústeres de tráfico aéreo")
     print("6- Utilizar las millas de viajero")
+    print("7- Cuantificar el efecto de un aeropuerto cerrado")
 
 def optionTwo(cont):
     # controller.loadAirports(cont, airportsFile)
@@ -135,7 +136,38 @@ def optionsix(cont,origen,millas):
 
     print('la diferencia entre las millas del usuario y la distancia que recorre la rama es de :', str((millas*1.6) -distancia))
 
+def optionseven(cont,airport):
 
+    lista = controller.affectedairports(cont,airport)
+
+    size = lt.size(lista)
+    
+    print('Se afectaron ', str(size), 'aeopuertos')
+
+    n = [1,2,3,size-2,size-1,size]
+
+    print('Los aeropuertos afectados son los siguientes: ')
+
+    if size <= 6:
+
+        n = 1
+        for y in lt.iterator(lista):
+            print(n)
+            print(y)
+    else:
+        for y in n:
+            m = 1
+            while m <= 6:
+
+                print(y)
+                print(lt.getElement(lista,y))
+                m += 1
+
+
+
+
+
+    pass
     
 
     
@@ -163,6 +195,11 @@ while True:
         origen = input('Ingrese el codigo IATA de su ciudad de origen')
         millas =int(input('Ingrese su numero de millas'))    
         optionsix(cont,origen,millas)
+
+    elif int(inputs[0]) == 7:
+          
+        airport = input('Digite el codigo IATA del aeropuerto del cual se quiere tomar el ejemplo de no funcionamiento')  
+        optionseven(cont,airport)
 
     else:
         sys.exit(0)

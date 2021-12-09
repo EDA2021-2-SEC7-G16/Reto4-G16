@@ -206,6 +206,18 @@ def diferenciakm(cont,lista):
     return final
 
 
+def affectedairports(cont,airport):
+
+
+    grafo = cont['graphConnections']
+
+    lista = gr.adjacents(grafo,airport)
+
+    return lista
+
+    
+
+
 def compareStopIds(stop, keyvaluestop):
     """
     Compara dos estaciones
