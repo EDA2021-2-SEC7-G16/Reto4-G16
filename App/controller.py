@@ -78,14 +78,19 @@ def vertexAmmount(graph):
 def edgesAmmount(graph):
     return model.edgesAmmount(graph)
 
-def total_clusters(cont, air_1, air_2):
-    
+def aerialInterconnection(cont):
+    return model.aerialInterconnection(cont)
 
+def homonymCities(cont, city):
+    return model.homonymCities(cont, city)
+
+def shortestRoute(cont, originCityInfo, destinationCityInfo):
+    return model.shortestRoute(cont, originCityInfo, destinationCityInfo)
+
+def total_clusters(cont, air_1, air_2):
     return model.total_clusters(cont,air_1,air_2)
 
-
 def min_tree(cont,origen,millas):
-
     return model.min_tree(cont,origen,millas)
 
 def diferenciakm(cont,lista):
@@ -95,3 +100,4 @@ def diferenciakm(cont,lista):
 def affectedairports(cont,airport):
 
     return model.affectedairports(cont,airport)    
+       

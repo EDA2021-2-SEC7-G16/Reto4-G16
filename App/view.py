@@ -25,6 +25,7 @@ import sys
 import controller
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
+from DISClib.ADT import minpq as mpq
 from DISClib.ADT.graph import gr
 from DISClib.DataStructures import mapentry as me
 from prettytable import PrettyTable
@@ -49,7 +50,9 @@ def printMenu():
     print("Bienvenido")
     print("1- Inicializar analizador")
     print("2- Cargar datos al analizador")
+    print("3- Encontrar puntos de interconexión aérea")
     print("4- Encontrar clústeres de tráfico aéreo")
+    print("5- Encontrar la ruta más corta entre ciudades")
     print("6- Utilizar las millas de viajero")
     print("7- Cuantificar el efecto de un aeropuerto cerrado")
 
@@ -94,6 +97,140 @@ def optionTwo(cont):
     city.max_width = 25
     print("Última ciudad cargada")
     print(city)
+
+def optionThree(cont):
+    (dMinPQ, nDMinPQ) = controller.aerialInterconnection(cont)
+    print("==================================")
+    print("Grafo dirigido")
+    print("==================================")
+    print("Cantidad de aeropuertos interconectados: " + (str(mpq.size(dMinPQ))))
+    print("Los 5 aeropuertos más interconectados en la red son:")
+    printDirected(cont, dMinPQ)
+    print("==================================")
+    print("Grafo no-dirigido")
+    print("==================================")
+    print("Cantidad de aeropuertos interconectados: " + (str(mpq.size(nDMinPQ))))
+    print("Los 5 aeropuertos más interconectados en la red son:")
+    printNotDirected(cont, nDMinPQ)
+
+def printNotDirected(cont, minpq):
+    count = 0
+    table = PrettyTable()
+    table.field_names = ["IATA", "Nombre", "Ciudad", "País", "Conexiones"]
+    while count < 5:
+        count += 1
+        info = mpq.delMin(minpq)
+        iata = info[0]
+        degree = info[1]
+        infoiata = mp.get(cont['airports'], iata)
+        infoiata = me.getValue(infoiata)
+        table.add_row([iata, str(infoiata["Name"]), str(infoiata["City"]), str(infoiata["Country"]), str(degree)])
+    table.max_width = 25
+    print(table)
+
+def printDirected(cont, minpq):
+    count = 0
+    table = PrettyTable()
+    table.field_names = ["IATA", "Nombre", "Ciudad", "País", "Total de conexiones", "Salida", "Entrada"]
+    while count < 5:
+        count += 1
+        info = mpq.delMin(minpq)
+        iata = info[0]
+        degree = info[1]
+        outbound = info[3]
+        inbound = info[2]
+        infoiata = mp.get(cont['airports'], iata)
+        infoiata = me.getValue(infoiata)
+        table.add_row([iata, str(infoiata["Name"]), str(infoiata["City"]), str(infoiata["Country"]), degree, outbound, inbound])
+    table.max_width = 15
+    print(table)
+
+def optionFive(cont, originCity, destinationCity):
+    originList = controller.homonymCities(cont, originCity)
+    destinationList = controller.homonymCities(cont, destinationCity)
+    (infoOriginCity, infoDestinationCity) = viewHomonymCities(originList, destinationList)
+    (origin, destination, path) = controller.shortestRoute(cont, infoOriginCity, infoDestinationCity)
+    (originTerDis, originIATA) = origin
+    (destinationTerDis, destinationIATA) = destination
+    originT = PrettyTable()
+    originT.field_names = ["IATA", "Nombre", "Ciudad", "País"]
+    originAe = mp.get(cont["airports"], originIATA)["value"]
+    originT.add_row([originAe["IATA"], originAe["Name"], originAe["City"], originAe["Country"]])
+    destinationT = PrettyTable()
+    destinationT.field_names = ["IATA", "Nombre", "Ciudad", "País"]
+    destinationAe = mp.get(cont["airports"], destinationIATA)
+    destinationAe = me.getValue(destinationAe)
+    destinationT.add_row([destinationAe["IATA"], destinationAe["Name"], destinationAe["City"], destinationAe["Country"]])
+    table = PrettyTable()
+    table.field_names = ["Origen", "Destino", "Distancia (km)", "Tipo de trayectoria"]
+    table.add_row([originCity, originIATA, round(originTerDis, 3), "Terrestre"])  
+    totalWeight = originTerDis + destinationTerDis
+
+    print("El aeropuerto de salida cercano a " + originCity + " es: ")
+    originT.max_width = 25
+
+    print(originT)
+    print("El aeropuerto de llegada cercano a " + destinationCity + " es: ")
+    destinationT.max_width = 25
+
+    print(destinationT)
+    print("Ruta recomendada: ")
+
+    if path == None:
+        print("No se encontró una ruta entre los dos aeropuertos de las ciudades dadas, seguramente no se encuentran en el mismo cluster aéreo.")
+    else:
+        for route in lt.iterator(path):
+            start = route["vertexA"]
+            end = route["vertexB"]
+            flightWeight = route["weight"]
+            table.add_row([start, end, flightWeight, "Aérea"])  
+            totalWeight = totalWeight + flightWeight
+        table.add_row([destinationCity, destinationIATA, round(destinationTerDis, 3), "Terrestre"])  
+        table.add_row([" ", "", round(totalWeight, 3), "Total"])  
+        table.max_width = 25
+        print(table)
+
+def viewHomonymCities(originList, destinationList):
+    if originList == None or destinationList == None:
+        print("No se logró encontrar alguna ciudad, revise la información dada.")
+        sys.exit(0)
+    else:
+        if lt.size(originList) == 1:
+            infoOriginCity = lt.getElement(originList, 1)
+        elif lt.size(originList) > 1:
+            print("\nLa ciudad de origen " + originList + " es homónima con estas ciudades:")
+            printCitiesList(originList)
+            optionO = int(input("Seleccione el número de la ciudad que desea escoger como origen:"))
+            if optionO <= lt.size(originList):
+                infoOriginCity = lt.getElement(originList, optionO)
+            else:
+                print("La opción marca no es válida.")
+                sys.exit(0)
+
+        if lt.size(destinationList) == 1:
+            infoDestinationCity = lt.getElement(destinationList, 1)
+
+        if lt.size(destinationList) > 1:
+            print("\nLa ciudad de destino " + destinationCity + " es homónima con estas ciudades:")
+            printCitiesList(destinationList)
+            optionD = int(input("Seleccione el número de la ciudad que desea escoger como destino:"))
+            if optionD <= lt.size(destinationList):
+                infoDestinationCity = lt.getElement(destinationList, optionD)
+            else:
+                print("La opción marca no es válida.")
+                sys.exit(0)
+                
+    return(infoOriginCity, infoDestinationCity)
+
+def printCitiesList(citiesList):
+    x = PrettyTable() 
+    x.field_names = ["#", "Ciudad", "País", "Latitud", "Longitud", "Población", "ID"]
+    cont = 1
+    for i in lt.iterator(citiesList):
+        x.add_row([str(cont), str(i["city_ascii"]), str(i["country"]), str(i["lat"]), str(i["lng"]), str(i["population"]), str(i["id"])])
+        x.max_width = 25
+        cont += 1
+    print(x)
 
 def optionFour(cont,airport_1,airport_2):
 
@@ -174,6 +311,7 @@ def optionseven(cont,airport):
 """
 Menu principal
 """
+
 while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n>')
@@ -185,12 +323,20 @@ while True:
         print("Cargando información de los archivos al analizador...")
         optionTwo(cont)
 
+    elif int(inputs[0]) == 3:
+        optionThree(cont)
+
     elif int(inputs[0]) == 4:
         print("Cargando información de los archivos al analizador...")
         airport_1 = input('Ingrese el codigo IATA del primer aeropuerto')
         airport_2 = input('Ingrese el codigo IATA del segundo aeropuerto')
         optionFour(cont,airport_1,airport_2) 
 
+    elif int(inputs[0]) == 5:
+        originCity = input('Escriba el nombre de la ciudad origen: ')
+        destinationCity = input('Escriba el nombre de la ciudad destino: ')
+        optionFive(cont, originCity, destinationCity)
+    
     elif int(inputs[0]) == 6:
         origen = input('Ingrese el codigo IATA de su ciudad de origen')
         millas =int(input('Ingrese su numero de millas'))    
